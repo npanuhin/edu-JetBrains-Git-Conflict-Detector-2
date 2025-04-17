@@ -26,4 +26,10 @@ public enum FileStatus {
     public static FileStatus fromGitHub(String status) {
         return FileStatus.valueOf(status.toUpperCase());
     }
+
+    @Override
+    public String toString() {
+        String lowercase = name().toLowerCase();
+        return Character.toUpperCase(lowercase.charAt(0)) + lowercase.substring(1);
+    }
 }
