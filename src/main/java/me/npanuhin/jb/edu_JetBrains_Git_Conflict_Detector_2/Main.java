@@ -1,5 +1,7 @@
 package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
+import org.apache.commons.cli.*;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -12,23 +14,38 @@ public class Main {
             return;
         }
 
-        String localBranch = args[0];
-        String remoteBranch = args[1];
-        String owner = args[2];
-        String repo = args[3];
-        String accessToken = args.length >= 5 ? args[4] : null;
-        String repoPath = ".";
+        Options options = new Options();
 
-        if (localBranch.contains("/")) {
-            System.out.println("Local branch names should not contain \"/\" character");
-            return;
-        }
+        options.addOption("p", "repo-path", true, "Repository path");
+        options.addOption("t", "token", true, "GitHub access token");
 
-        if (!remoteBranch.contains("/")) {
-            remoteBranch = "origin/" + remoteBranch;
-        }
-
+        CommandLineParser parser = new DefaultParser();
         try {
+            CommandLine cmd = parser.parse(options, args);
+
+            String[] remainingArgs = cmd.getArgs();
+            if (remainingArgs.length < 4) {
+                System.out.println("Usage: java -jar git-conflict-detector.jar <localBranch> <remoteBranch> <owner> <repo> [--repo-path <path>] [--token <token>]");
+                return;
+            }
+
+            String localBranch = remainingArgs[0];
+            String remoteBranch = remainingArgs[1];
+            String owner = remainingArgs[2];
+            String repo = remainingArgs[3];
+
+            String repoPath = cmd.getOptionValue("p", ".");
+            String accessToken = cmd.getOptionValue("t");
+
+            if (localBranch.contains("/")) {
+                System.out.println("Local branch names should not contain \"/\" character");
+                return;
+            }
+
+            if (!remoteBranch.contains("/")) {
+                remoteBranch = "origin/" + remoteBranch;
+            }
+
             String mergeBase = GitUtils.getMergeBase(repoPath, localBranch, remoteBranch);
 
             List<FileChange> localChanges = GitUtils.getModifiedFiles(repoPath, mergeBase, localBranch);
@@ -60,6 +77,8 @@ public class Main {
                 }
             }
 
+        } catch (ParseException e) {
+            System.err.println("Error parsing command line arguments: " + e.getMessage());
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
         } catch (Exception e) {

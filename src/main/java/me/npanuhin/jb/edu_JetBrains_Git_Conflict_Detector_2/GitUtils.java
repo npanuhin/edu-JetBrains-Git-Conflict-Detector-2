@@ -30,14 +30,11 @@ public class GitUtils {
         command.add(oldCommit);
         command.add(newCommit);
 
-        List<FileChange> modifiedFiles = new ArrayList<>();
         String[] lines = runGitCommand(command).split("\n");
 
-        for (String line : lines) {
-            if (line.trim().isEmpty()) {
-                continue;
-            }
+        List<FileChange> modifiedFiles = new ArrayList<>();
 
+        for (String line : lines) {
             String[] parts = line.split("\t");
             if (parts.length < 2) {
                 throw new IllegalArgumentException("Invalid git diff line: " + line);
@@ -57,6 +54,9 @@ public class GitUtils {
         StringBuilder output = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
+            if (line.trim().isEmpty()) {
+                continue;
+            }
             output.append(line).append("\n");
         }
 

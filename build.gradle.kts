@@ -12,9 +12,10 @@ repositories {
 dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
-    // implementation("com.fasterxml.jackson.core:jackson-core:2.14.2")
-    // implementation("com.fasterxml.jackson.core:jackson-annotations:2.14.2")
+    implementation("commons-cli:commons-cli:1.9.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    // implementation("com.fasterxml.jackson.core:jackson-core:2.18.2")
+    // implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
 
     // testImplementation(platform("org.junit:junit-bom:5.10.0"))
     // testImplementation("org.junit.jupiter:junit-jupiter")
