@@ -16,8 +16,8 @@ public class Main {
 
         Options options = new Options();
 
-        options.addOption("p", "repo-path", true, "Repository path");
-        options.addOption("t", "token", true, "GitHub access token");
+        options.addOption("C", "repo-path", true, "Repository path");
+        options.addOption("t", "access-token", true, "GitHub access token");
 
         CommandLineParser parser = new DefaultParser();
         try {
@@ -34,7 +34,7 @@ public class Main {
             String owner = remainingArgs[2];
             String repo = remainingArgs[3];
 
-            String repoPath = cmd.getOptionValue("p", ".");
+            String repoPath = cmd.getOptionValue("C", ".");
             String accessToken = cmd.getOptionValue("t");
 
             if (localBranch.contains("/")) {

@@ -14,13 +14,13 @@ import java.util.List;
 
 public class GitHubAPI {
 
-    private static JsonNode fetchURL(String urlString, String token) throws IOException, URISyntaxException {
+    private static JsonNode fetchURL(String urlString, String access_token) throws IOException, URISyntaxException {
 
         URI uri = new URI(urlString);
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
         connection.setRequestMethod("GET");
-        if (token != null) {
-            connection.setRequestProperty("Authorization", "token " + token);
+        if (access_token != null) {
+            connection.setRequestProperty("Authorization", "token " + access_token);
         }
         connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
         connection.setRequestProperty("User-Agent", "JetBrains-Git-Conflict-Detector");
@@ -37,15 +37,15 @@ public class GitHubAPI {
         return parts[parts.length - 1];
     }
 
-    public static String getLatestCommitSha(String owner, String repo, String branch, String token)
+    public static String getLatestCommitSha(String owner, String repo, String branch, String access_token)
             throws IOException, URISyntaxException {
 
         String url = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, getBranchName(branch));
 
-        return fetchURL(url, token).get("sha").asText();
+        return fetchURL(url, access_token).get("sha").asText();
     }
 
-    public static List<FileChange> getModifiedFiles(String owner, String repo, String base, String head, String token)
+    public static List<FileChange> getModifiedFiles(String owner, String repo, String base, String head, String access_token)
             throws IOException, URISyntaxException {
 
         String url = String.format(
@@ -55,7 +55,7 @@ public class GitHubAPI {
 
         List<FileChange> fileChanges = new ArrayList<>();
 
-        for (JsonNode fileNode : fetchURL(url, token).get("files")) {
+        for (JsonNode fileNode : fetchURL(url, access_token).get("files")) {
             String filename = fileNode.get("filename").asText();
             String rawStatus = fileNode.get("status").asText();
 
