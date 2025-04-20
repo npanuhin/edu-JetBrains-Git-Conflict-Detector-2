@@ -48,9 +48,9 @@ public class Main {
 
             List<FileChange> localChanges = GitUtils.getModifiedFiles(repoPath, mergeBase, localBranch);
 
-            String remoteHead = GitHubAPI.getLatestCommitSha(owner, repo, remoteBranch, accessToken);
+            String remoteHead = GitHubAPI.getLastCommitOnBranch(owner, repo, remoteBranch, accessToken);
 
-            List<FileChange> remoteChanges = GitHubAPI.getModifiedFiles(owner, repo, mergeBase, remoteHead, accessToken);
+            List<FileChange> remoteChanges = GitHubAPI.compareCommits(owner, repo, mergeBase, remoteHead, accessToken);
 
             System.out.println("\n--- Potential Conflicts ---\n");
 

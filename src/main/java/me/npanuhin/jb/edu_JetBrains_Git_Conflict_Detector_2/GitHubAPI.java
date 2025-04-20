@@ -14,7 +14,7 @@ import java.util.List;
 
 public class GitHubAPI {
 
-    private static JsonNode fetchURL(String urlString, String access_token) throws IOException, URISyntaxException {
+    static JsonNode fetchURL(String urlString, String access_token) throws IOException, URISyntaxException {
 
         URI uri = new URI(urlString);
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
@@ -37,7 +37,7 @@ public class GitHubAPI {
         return parts[parts.length - 1];
     }
 
-    public static String getLatestCommitSha(String owner, String repo, String branch, String access_token)
+    public static String getLastCommitOnBranch(String owner, String repo, String branch, String access_token)
             throws RuntimeException, URISyntaxException {
 
         String url = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, getBranchName(branch));
@@ -49,7 +49,36 @@ public class GitHubAPI {
         }
     }
 
-    public static List<FileChange> getModifiedFiles(String owner, String repo, String base, String head, String access_token)
+    private static void parseCommits(JsonNode fileNode, List<FileChange> changes) {
+        String filename = fileNode.get("filename").asText();
+        String rawStatus = fileNode.get("status").asText();
+        JsonNode previousFilenameNode = fileNode.get("previous_filename");
+        String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
+
+        changes.add(FileChange.fromGitHub(rawStatus, filename, previousFilename));
+    }
+
+    private static List<FileChange> analyzeAllCommits(JsonNode commitsArray, String owner, String repo, String access_token)
+            throws RuntimeException, URISyntaxException {
+
+        List<FileChange> changes = new ArrayList<>();
+
+        for (JsonNode commitNode : commitsArray) {
+            String sha = commitNode.get("sha").asText();
+            String commitUrl = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, sha);
+            try {
+                for (JsonNode fileNode : fetchURL(commitUrl, access_token).get("files")) {
+                    parseCommits(fileNode, changes);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to fetch file changes from GitHub API.", e);
+            }
+        }
+
+        return changes;
+    }
+
+    public static List<FileChange> compareCommits(String owner, String repo, String base, String head, String access_token)
             throws RuntimeException, URISyntaxException {
 
         String url = String.format(
@@ -57,22 +86,23 @@ public class GitHubAPI {
                 owner, repo, base, head
         );
 
-        List<FileChange> fileChanges = new ArrayList<>();
-
         try {
-            for (JsonNode fileNode : fetchURL(url, access_token).get("files")) {
-                String filename = fileNode.get("filename").asText();
-                String rawStatus = fileNode.get("status").asText();
+            JsonNode root = fetchURL(url, access_token);
 
-                JsonNode previousFilenameNode = fileNode.get("previous_filename");
-                String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
-
-                fileChanges.add(FileChange.fromGitHub(rawStatus, filename, previousFilename));
+            JsonNode filesNode = root.get("files");
+            if (filesNode.size() >= 300) {
+                System.err.println("GitHub compare API returned 300 files, falling back to per-commit analysis...");
+                return analyzeAllCommits(root.get("commits"), owner, repo, access_token);
             }
+
+            List<FileChange> fileChanges = new ArrayList<>();
+            for (JsonNode fileNode : filesNode) {
+                parseCommits(fileNode, fileChanges);
+            }
+            return fileChanges;
+
         } catch (IOException e) {
             throw new RuntimeException("Failed to fetch file changes from GitHub API.", e);
         }
-
-        return fileChanges;
     }
 }
