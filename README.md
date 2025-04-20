@@ -39,7 +39,7 @@ For accessing private repositories (not need for the demo):
 
 1. Clone the repository to your local machine
 
-2. Set up the Git structure by running the provided `setup` script (`setup.cmd` or `./setup.sh`)
+2. Set up the Git structure by running the provided `setup` script (`scripts\setup.cmd` or `sh scripts/setup.sh`)
 
     <details>
     <summary>Git structure before and after setup, for reference (click to expand)</summary>
@@ -60,11 +60,12 @@ For accessing private repositories (not need for the demo):
     `get_diff.cmd` and `./get_diff.sh` are provided for your convenience. For example:
 
     ```bash
-    ./get_diff.sh branchB origin/branchA npanuhin edu-JetBrains-Git-Conflict-Detector
+    sh scripts/get_diff.sh branchB origin/branchA npanuhin edu-JetBrains-Git-Conflict-Detector
     # or
-    python3 get_diff.py branchB branchA npanuhin edu-JetBrains-Git-Conflict-Detector
+    scripts\get_diff.cmd branchB origin/branchA npanuhin edu-JetBrains-Git-Conflict-Detector
+
     # or (if this repository was private and located in a different directory)
-    python3 get_diff.py branchB branchA npanuhin edu-JetBrains-Git-Conflict-Detector --access_token {github_token} --repo_path ../some_path/
+    sh scripts/get_diff.sh branchB branchA npanuhin edu-JetBrains-Git-Conflict-Detector --access_token {github_token} --repo_path ../some_path/
     ```
 
     Parameters:
@@ -108,7 +109,7 @@ For accessing private repositories (not need for the demo):
 
     </details>
 
-4. If you want to reset the Git structure to the initial state, you can either run `rollback.cmd` or `./rollback.sh`, or clone the repository again
+4. If you want to reset the Git structure to the initial state, you can either run `scripts\rollback.cmd` or `sh scripts/rollback.sh`, or clone the repository again
 
 
 [^1]: The reson for adding `origin` is [mentioned here](#origin). Is is possible to fetch the list of remotes using `git remote`, so if for example `branchA` is not on `origin`, we might detect that. This is one of the potential improvements for the project

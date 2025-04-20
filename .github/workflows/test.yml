@@ -34,4 +34,4 @@ jobs:
           cache-read-only: false
 
       - name: Run tests
-        run: ./test.sh
+        run: sh scripts/test.sh
