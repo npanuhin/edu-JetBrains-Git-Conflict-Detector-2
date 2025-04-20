@@ -2,7 +2,6 @@ package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
 import org.apache.commons.cli.*;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,9 +18,8 @@ public class Main {
         options.addOption("C", "repo-path", true, "Repository path");
         options.addOption("t", "access-token", true, "GitHub access token");
 
-        CommandLineParser parser = new DefaultParser();
         try {
-            CommandLine cmd = parser.parse(options, args);
+            CommandLine cmd = new DefaultParser().parse(options, args);
 
             String[] remainingArgs = cmd.getArgs();
             if (remainingArgs.length < 4) {
@@ -79,10 +77,8 @@ public class Main {
 
         } catch (ParseException e) {
             System.err.println("Error parsing command line arguments: " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println("Error: " + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Unexpected Error: " + e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 }

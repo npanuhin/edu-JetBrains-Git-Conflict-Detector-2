@@ -38,15 +38,19 @@ public class GitHubAPI {
     }
 
     public static String getLatestCommitSha(String owner, String repo, String branch, String access_token)
-            throws IOException, URISyntaxException {
+            throws RuntimeException, URISyntaxException {
 
         String url = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, getBranchName(branch));
 
-        return fetchURL(url, access_token).get("sha").asText();
+        try {
+            return fetchURL(url, access_token).get("sha").asText();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to fetch latest commit from GitHub API. Consider providing a GitHub access token (--access-token).", e);
+        }
     }
 
     public static List<FileChange> getModifiedFiles(String owner, String repo, String base, String head, String access_token)
-            throws IOException, URISyntaxException {
+            throws RuntimeException, URISyntaxException {
 
         String url = String.format(
                 "https://api.github.com/repos/%s/%s/compare/%s...%s",
@@ -55,14 +59,18 @@ public class GitHubAPI {
 
         List<FileChange> fileChanges = new ArrayList<>();
 
-        for (JsonNode fileNode : fetchURL(url, access_token).get("files")) {
-            String filename = fileNode.get("filename").asText();
-            String rawStatus = fileNode.get("status").asText();
+        try {
+            for (JsonNode fileNode : fetchURL(url, access_token).get("files")) {
+                String filename = fileNode.get("filename").asText();
+                String rawStatus = fileNode.get("status").asText();
 
-            JsonNode previousFilenameNode = fileNode.get("previous_filename");
-            String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
+                JsonNode previousFilenameNode = fileNode.get("previous_filename");
+                String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
 
-            fileChanges.add(FileChange.fromGitHub(rawStatus, filename, previousFilename));
+                fileChanges.add(FileChange.fromGitHub(rawStatus, filename, previousFilename));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to fetch file changes from GitHub API.", e);
         }
 
         return fileChanges;

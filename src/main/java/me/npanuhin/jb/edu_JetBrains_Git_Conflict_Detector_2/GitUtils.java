@@ -8,7 +8,7 @@ import java.util.List;
 
 public class GitUtils {
 
-    public static String getMergeBase(String repoPath, String branchA, String branchB) throws IOException {
+    public static String getMergeBase(String repoPath, String branchA, String branchB) {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.add("-C");
@@ -20,7 +20,7 @@ public class GitUtils {
         return runGitCommand(command);
     }
 
-    public static List<FileChange> getModifiedFiles(String repoPath, String oldCommit, String newCommit) throws IOException {
+    public static List<FileChange> getModifiedFiles(String repoPath, String oldCommit, String newCommit) {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.add("-C");
@@ -45,31 +45,37 @@ public class GitUtils {
         return modifiedFiles;
     }
 
-    private static String runGitCommand(List<String> command) throws IOException {
+    private static String runGitCommand(List<String> command) {
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.redirectErrorStream(true);
-        Process process = processBuilder.start();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        StringBuilder output = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (line.trim().isEmpty()) {
-                continue;
-            }
-            output.append(line).append("\n");
-        }
 
         try {
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new IOException("Git command \"" + String.join(" ", command) + "\" failed with exit code " + exitCode);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Git command execution interrupted", e);
-        }
+            Process process = processBuilder.start();
 
-        return output.toString().trim();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+                output.append(line).append("\n");
+            }
+
+            try {
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    throw new IOException("Git failed with exit code " + exitCode);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Git command execution interrupted", e);
+            }
+
+            return output.toString().trim();
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to run git command: " + String.join(" ", command), e);
+        }
     }
 }
