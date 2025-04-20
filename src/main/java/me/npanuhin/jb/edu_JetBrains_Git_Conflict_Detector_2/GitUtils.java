@@ -45,7 +45,7 @@ public class GitUtils {
         return modifiedFiles;
     }
 
-    private static String runGitCommand(List<String> command) {
+    static String runGitCommand(List<String> command) {
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.redirectErrorStream(true);
 
