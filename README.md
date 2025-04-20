@@ -32,7 +32,7 @@ For your convenience, here is a visual representation:
 ### Prerequisites
 
 For accessing private repositories (not need for the demo):
-- GitHub API access token [generated here](https://github.com/settings/personal-access-tokens) with `Read` access to `Contents` and `Metadata` for the desired repository
+- GitHub API access token [generated here](https://github.com/settings/personal-access-tokens) with `Read` access to `Contents` for the desired repository
 
 
 ### Setup
