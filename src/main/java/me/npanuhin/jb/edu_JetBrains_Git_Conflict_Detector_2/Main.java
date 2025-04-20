@@ -42,10 +42,10 @@ public class Main {
             int maxBranchNameLength = Math.max(remoteBranch.length(), localBranch.length()) + 1;
 
             Map<String, FileChange> localMap = localChanges.stream()
-                    .collect(Collectors.toMap(FileChange::getPath, fc -> fc));
+                    .collect(Collectors.toMap(FileChange::path, fc -> fc));
 
             for (FileChange remoteChange : remoteChanges) {
-                String path = remoteChange.getPath();
+                String path = remoteChange.path();
                 if (localMap.containsKey(path)) {
                     FileChange localChange = localMap.get(path);
 

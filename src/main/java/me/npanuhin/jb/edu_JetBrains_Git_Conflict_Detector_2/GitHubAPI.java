@@ -14,8 +14,7 @@ import java.util.List;
 
 public class GitHubAPI {
 
-    private static HttpURLConnection createConnection(String urlString, String token)
-            throws IOException, URISyntaxException {
+    private static JsonNode fetchURL(String urlString, String token) throws IOException, URISyntaxException {
 
         URI uri = new URI(urlString);
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
@@ -25,7 +24,12 @@ public class GitHubAPI {
         }
         connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
         connection.setRequestProperty("User-Agent", "JetBrains-Git-Conflict-Detector");
-        return connection;
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            return new ObjectMapper().readTree(reader);
+        } finally {
+            connection.disconnect();
+        }
     }
 
     private static String getBranchName(String branch) {
@@ -37,15 +41,8 @@ public class GitHubAPI {
             throws IOException, URISyntaxException {
 
         String url = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, getBranchName(branch));
-        HttpURLConnection connection = createConnection(url, token);
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(reader);
-            return root.get("sha").asText();
-        } finally {
-            connection.disconnect();
-        }
+        return fetchURL(url, token).get("sha").asText();
     }
 
     public static List<FileChange> getModifiedFiles(String owner, String repo, String base, String head, String token)
@@ -55,25 +52,19 @@ public class GitHubAPI {
                 "https://api.github.com/repos/%s/%s/compare/%s...%s",
                 owner, repo, base, head
         );
-        HttpURLConnection connection = createConnection(url, token);
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-            JsonNode root = new ObjectMapper().readTree(reader);
-            List<FileChange> fileChanges = new ArrayList<>();
+        List<FileChange> fileChanges = new ArrayList<>();
 
-            for (JsonNode fileNode : root.get("files")) {
-                String filename = fileNode.get("filename").asText();
-                String rawStatus = fileNode.get("status").asText();
+        for (JsonNode fileNode : fetchURL(url, token).get("files")) {
+            String filename = fileNode.get("filename").asText();
+            String rawStatus = fileNode.get("status").asText();
 
-                JsonNode previousFilenameNode = fileNode.get("previous_filename");
-                String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
+            JsonNode previousFilenameNode = fileNode.get("previous_filename");
+            String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
 
-                fileChanges.add(FileChange.fromGitHub(rawStatus, filename, previousFilename));
-            }
-
-            return fileChanges;
-        } finally {
-            connection.disconnect();
+            fileChanges.add(FileChange.fromGitHub(rawStatus, filename, previousFilename));
         }
+
+        return fileChanges;
     }
 }

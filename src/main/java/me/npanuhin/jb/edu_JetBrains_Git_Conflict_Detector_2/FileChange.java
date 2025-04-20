@@ -1,17 +1,10 @@
 package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 
-public class FileChange {
-    private final FileStatus status;
-    private final String path;
-    private final String oldPath;
-
-    public FileChange(FileStatus status, String path, String oldPath) {
-        this.status = status;
-        this.path = path;
-        this.oldPath = oldPath;
-    }
+public record FileChange(FileStatus status, String path, String oldPath) {
 
     public static FileChange fromGit(String rawStatus, String path, String newPath) {
         FileStatus status = FileStatus.fromGit(rawStatus);
@@ -33,12 +26,8 @@ public class FileChange {
         return new FileChange(status, filename, previousFilename);
     }
 
-    public String getPath() {
-        return path;
-    }
-
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         int maxStatusLength = Arrays.stream(FileStatus.values())
                 .mapToInt(status -> status.toString().length())
                 .max()
