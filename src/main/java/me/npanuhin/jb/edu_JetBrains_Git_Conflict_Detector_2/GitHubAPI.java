@@ -59,19 +59,16 @@ public class GitHubAPI {
     }
 
     private static List<FileChange> analyzeAllCommits(JsonNode commitsArray, String owner, String repo, String access_token)
-            throws RuntimeException, URISyntaxException {
+            throws IOException, URISyntaxException {
 
         List<FileChange> changes = new ArrayList<>();
 
         for (JsonNode commitNode : commitsArray) {
             String sha = commitNode.get("sha").asText();
             String commitUrl = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, sha);
-            try {
-                for (JsonNode fileNode : fetchURL(commitUrl, access_token).get("files")) {
-                    parseCommits(fileNode, changes);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to fetch file changes from GitHub API.", e);
+
+            for (JsonNode fileNode : fetchURL(commitUrl, access_token).get("files")) {
+                parseCommits(fileNode, changes);
             }
         }
 
@@ -102,7 +99,7 @@ public class GitHubAPI {
             return fileChanges;
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to fetch file changes from GitHub API.", e);
+            throw new RuntimeException("Failed to fetch file changes from GitHub API. Please ensure that the repository owner and name are correct and match the local path.", e);
         }
     }
 }

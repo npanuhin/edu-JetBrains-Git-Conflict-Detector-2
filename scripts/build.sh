@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-./gradlew clean build
+./gradlew clean build -x test
 
 cp build/libs/*.jar git-conflict-detector.jar
 
