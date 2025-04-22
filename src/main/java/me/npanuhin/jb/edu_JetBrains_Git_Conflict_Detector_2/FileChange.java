@@ -2,8 +2,6 @@ package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-
 public record FileChange(FileStatus status, String path, String oldPath) {
     public FileChange {
         if (path == null) {
@@ -21,10 +19,10 @@ public record FileChange(FileStatus status, String path, String oldPath) {
 
     @Override
     public @NotNull String toString() {
-        int maxStatusLength = Arrays.stream(FileStatus.values())
-                .mapToInt(status -> status.toString().length())
-                .max()
-                .orElse(0);
+        int maxStatusLength = 0;
+        for (FileStatus fileStatus : FileStatus.values()) {
+            maxStatusLength = Math.max(maxStatusLength, fileStatus.toString().length());
+        }
 
         String statusStr = String.format("%-" + maxStatusLength + "s", status.toString());
         String prefix = (oldPath != null) ? oldPath + " -> " : "";

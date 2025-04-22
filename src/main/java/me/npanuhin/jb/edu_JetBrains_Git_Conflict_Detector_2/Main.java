@@ -2,9 +2,9 @@ package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
 import org.apache.commons.cli.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -56,8 +56,10 @@ public class Main {
 
             int maxBranchNameLength = Math.max(remoteBranch.length(), localBranch.length()) + 1;
 
-            Map<String, FileChange> localMap = localChanges.stream()
-                    .collect(Collectors.toMap(FileChange::path, fc -> fc));
+            Map<String, FileChange> localMap = new HashMap<>();
+            for (FileChange fc : localChanges) {
+                localMap.put(fc.path(), fc);
+            }
 
             for (FileChange remoteChange : remoteChanges) {
                 String path = remoteChange.path();
