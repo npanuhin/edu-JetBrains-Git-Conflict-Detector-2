@@ -9,7 +9,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class GitHubAPITest {
+public class GitHubTest {
 
     @Test
     void testCompareCommitsParsing() throws Exception {
@@ -24,17 +24,12 @@ public class GitHubAPITest {
                     }
                 """;
 
-        GitHubAPI realAPI = new GitHubAPI();
-        GitHubAPI spyAPI = spy(realAPI);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode mockNode = mapper.readTree(mockJson);
+        JsonNode mockNode = new ObjectMapper().readTree(mockJson);
 
         try (var mockStatic = mockStatic(GitHubAPI.class, CALLS_REAL_METHODS)) {
-            mockStatic.when(() -> GitHubAPI.compareCommits(any(), any(), any(), any(), any())).thenCallRealMethod();
-
             mockStatic.when(() -> GitHubAPI.fetchURL(any(), any())).thenReturn(mockNode);
 
-            List<FileChange> result = GitHubAPI.compareCommits("owner", "repo", "base", "head", "token");
+            List<FileChange> result = GitHubAPI.compareCommits("owner", "repo", "base", "head", null);
 
             assertEquals(1, result.size());
             assertEquals("file.txt", result.getFirst().path());

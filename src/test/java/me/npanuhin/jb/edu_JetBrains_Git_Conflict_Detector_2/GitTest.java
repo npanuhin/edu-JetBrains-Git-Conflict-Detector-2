@@ -8,21 +8,33 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class GitUtilsTest {
+public class GitTest {
 
     @Test
     void testRunCmdSuccess() {
-        String version = GitUtils.getMergeBase(".", "HEAD", "HEAD"); // Same ref
-        assertFalse(version.isEmpty());
+        String version = GitUtils.runGitCommand(List.of("git", "version"));
+        assertTrue(version.startsWith("git version"));
     }
 
     @Test
     void testRunCmdFailure() {
-        List<String> badCommand = List.of("git", "badcommand");
-        Exception exception = assertThrows(RuntimeException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
+            GitUtils.runGitCommand(List.of("git", "badcommand"));
+        });
+    }
+
+    @Test
+    void testMergeBase() {
+        String curSha = GitUtils.runGitCommand(List.of("git", "rev-parse", "HEAD"));
+        String mergeBase = GitUtils.getMergeBase(".", "HEAD", "HEAD");
+        assertEquals(mergeBase, curSha);
+    }
+
+    @Test
+    void testMergeBaseFailure() {
+        assertThrows(RuntimeException.class, () -> {
             GitUtils.getMergeBase(".", "HEAD", "badbranchname");
         });
-        assertTrue(exception.getMessage().contains("Failed to run git command"));
     }
 
     @Test

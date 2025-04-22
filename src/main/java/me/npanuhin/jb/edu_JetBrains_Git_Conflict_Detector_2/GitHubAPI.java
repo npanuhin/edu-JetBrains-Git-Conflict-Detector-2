@@ -55,7 +55,11 @@ public class GitHubAPI {
         JsonNode previousFilenameNode = fileNode.get("previous_filename");
         String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
 
-        changes.add(FileChange.fromGitHub(rawStatus, filename, previousFilename));
+        changes.add(new FileChange(
+                FileStatus.fromGitHub(rawStatus),
+                filename,
+                previousFilename
+        ));
     }
 
     private static List<FileChange> analyzeAllCommits(JsonNode commitsArray, String owner, String repo, String access_token)

@@ -111,5 +111,17 @@ For accessing private repositories (not need for the demo):
 
 4. If you want to reset the Git structure to the initial state, you can either run `scripts\rollback` or `sh scripts/rollback.sh`, or clone the repository again
 
+## Testing
+
+Tests are automatically run via GitHub Actions on each push: <a href="https://github.com/npanuhin/edu-JetBrains-Git-Conflict-Detector-2/actions"><img src="https://github.com/npanuhin/edu-JetBrains-Git-Conflict-Detector-2/actions/workflows/test.yml/badge.svg"></a>
+
+To run tests manually you can execute the Gradle's `test` task:
+
+```bash
+./gradlew test
+# or
+sh scripts/test.sh
+```
+
 
 [^1]: The reson for adding `origin` is [mentioned here](#origin). Is is possible to fetch the list of remotes using `git remote`, so if for example `branchA` is not on `origin`, we might detect that. This is one of the potential improvements for the project

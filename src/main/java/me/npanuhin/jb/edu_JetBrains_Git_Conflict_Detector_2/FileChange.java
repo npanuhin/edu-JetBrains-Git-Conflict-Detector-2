@@ -5,25 +5,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 public record FileChange(FileStatus status, String path, String oldPath) {
-
-    public static FileChange fromGit(String rawStatus, String path, String newPath) {
-        FileStatus status = FileStatus.fromGit(rawStatus);
-
-        if ((status == FileStatus.RENAMED || status == FileStatus.COPIED) && newPath != null) {
-            return new FileChange(status, newPath, path);
-        } else if ((status != FileStatus.RENAMED && status != FileStatus.COPIED) && newPath == null) {
-            return new FileChange(status, path, null);
-        } else {
-            throw new IllegalArgumentException("Invalid path or new path for status: " + status);
+    public FileChange {
+        if (path == null) {
+            throw new IllegalArgumentException("Main file path cannot be null");
         }
-    }
 
-    public static FileChange fromGitHub(String rawStatus, String filename, String previousFilename) {
-        FileStatus status = FileStatus.fromGitHub(rawStatus);
-        if ((previousFilename == null) == (status == FileStatus.RENAMED || status == FileStatus.COPIED)) {
-            throw new IllegalArgumentException("Mismatched previous filename for status: " + status);
+        if (status == FileStatus.RENAMED || status == FileStatus.COPIED) {
+            if (oldPath == null) {
+                throw new IllegalArgumentException("Old path cannot be null for status: " + status);
+            }
+        } else if (oldPath != null) {
+            throw new IllegalArgumentException("Old path should be null for status: " + status);
         }
-        return new FileChange(status, filename, previousFilename);
     }
 
     @Override

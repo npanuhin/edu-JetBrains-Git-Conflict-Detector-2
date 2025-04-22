@@ -39,7 +39,12 @@ public class GitUtils {
             if (parts.length < 2) {
                 throw new IllegalArgumentException("Invalid git diff line: " + line);
             }
-            modifiedFiles.add(FileChange.fromGit(parts[0], parts[1], parts.length == 3 ? parts[2] : null));
+            FileStatus status = FileStatus.fromGit(parts[0]);
+            if (parts.length == 2) {
+                modifiedFiles.add(new FileChange(status, parts[1], null));
+            } else {
+                modifiedFiles.add(new FileChange(status, parts[2], parts[1]));
+            }
         }
 
         return modifiedFiles;
