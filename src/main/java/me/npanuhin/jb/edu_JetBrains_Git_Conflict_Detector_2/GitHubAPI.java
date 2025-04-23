@@ -127,38 +127,19 @@ public class GitHubAPI {
         return result;
     }
 
-    private static void parseCommits(JsonNode fileNode, List<FileChange> changes) {
-        String filename = fileNode.get("filename").asText();
-        String rawStatus = fileNode.get("status").asText();
-        JsonNode previousFilenameNode = fileNode.get("previous_filename");
-        String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
+    private static void addFileChanges(JsonNode filesNode, List<FileChange> changes) {
+        for (JsonNode fileNode : filesNode) {
+            String filename = fileNode.get("filename").asText();
+            String rawStatus = fileNode.get("status").asText();
+            JsonNode previousFilenameNode = fileNode.get("previous_filename");
+            String previousFilename = previousFilenameNode == null ? null : previousFilenameNode.asText();
 
-        changes.add(new FileChange(
-                FileStatus.fromGitHub(rawStatus),
-                filename,
-                previousFilename
-        ));
-    }
-
-    private static List<FileChange> analyzeAllCommits(
-            JsonNode commitsArray,
-            String owner,
-            String repo,
-            String access_token
-    ) throws IOException, URISyntaxException {
-
-        List<FileChange> changes = new ArrayList<>();
-
-        for (JsonNode commitNode : commitsArray) {
-            String sha = commitNode.get("sha").asText();
-            String commitUrl = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, sha);
-
-            for (JsonNode fileNode : fetchURL(commitUrl, access_token).get("files")) {
-                parseCommits(fileNode, changes);
-            }
+            changes.add(new FileChange(
+                    FileStatus.fromGitHub(rawStatus),
+                    filename,
+                    previousFilename
+            ));
         }
-
-        return changes;
     }
 
     public static List<FileChange> compareCommits(
@@ -170,23 +151,38 @@ public class GitHubAPI {
     ) throws RuntimeException, URISyntaxException {
 
         String url = String.format(
-                "https://api.github.com/repos/%s/%s/compare/%s...%s",
+                "https://api.github.com/repos/%s/%s/compare/%s...%s?per_page=100",
                 owner, repo, base, head
         );
 
         try {
+            List<FileChange> fileChanges = new ArrayList<>();
+
             JsonNode root = fetchURL(url, access_token);
 
             JsonNode filesNode = root.get("files");
             if (filesNode.size() >= 300) {
                 System.err.println("GitHub compare API returned 300 files, falling back to per-commit analysis...");
-                return analyzeAllCommits(root.get("commits"), owner, repo, access_token);
+
+                int pageNum = 1;
+                while (root.has("commits")) {
+                    for (JsonNode commitNode : root.get("commits")) {
+                        String sha = commitNode.get("sha").asText();
+                        String commitUrl = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, sha);
+
+                        addFileChanges(fetchURL(commitUrl, access_token).get("files"), fileChanges);
+                    }
+
+                    url = String.format(
+                            "https://api.github.com/repos/%s/%s/compare/%s...%s?per_page=100&page=%d",
+                            owner, repo, base, head, ++pageNum
+                    );
+                    root = fetchURL(url, access_token);
+                }
+            } else {
+                addFileChanges(filesNode, fileChanges);
             }
 
-            List<FileChange> fileChanges = new ArrayList<>();
-            for (JsonNode fileNode : filesNode) {
-                parseCommits(fileNode, fileChanges);
-            }
             return fileChanges;
 
         } catch (IOException e) {
