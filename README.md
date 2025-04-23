@@ -95,28 +95,28 @@ For accessing private repositories (not need for the demo):
     --- Potential Conflicts ---
 
     Conflict: file_in_root.txt
-      origin/branchA: Modified   file_in_root.txt
       branchB:        Modified   file_in_root.txt
+      origin/branchA: Modified   file_in_root.txt
 
     Conflict: folder_in_root/empty_file.txt
-      origin/branchA: Modified   folder_in_root/empty_file.txt
       branchB:        Modified   folder_in_root/empty_file.txt
+      origin/branchA: Modified   folder_in_root/empty_file.txt
 
     Conflict: folder_in_root/folder_nested/created_file.txt
-      origin/branchA: Added      folder_in_root/folder_nested/created_file.txt
       branchB:        Added      folder_in_root/folder_nested/created_file.txt
+      origin/branchA: Added      folder_in_root/folder_nested/created_file.txt
 
     Conflict: folder_in_root/folder_nested/deleted_file.txt
-      origin/branchA: Removed    folder_in_root/folder_nested/deleted_file.txt
       branchB:        Removed    folder_in_root/folder_nested/deleted_file.txt
+      origin/branchA: Removed    folder_in_root/folder_nested/deleted_file.txt
 
     Conflict: folder_in_root/folder_nested/file_in_folders.txt
-      origin/branchA: Modified   folder_in_root/folder_nested/file_in_folders.txt
       branchB:        Modified   folder_in_root/folder_nested/file_in_folders.txt
+      origin/branchA: Modified   folder_in_root/folder_nested/file_in_folders.txt
 
     Conflict: folder_in_root/truly_renamed_file.txt
-      origin/branchA: Renamed    folder_in_root/folder_nested/renamed_file.txt -> folder_in_root/truly_renamed_file.txt
       branchB:        Renamed    folder_in_root/folder_nested/renamed_file.txt -> folder_in_root/truly_renamed_file.txt
+      origin/branchA: Renamed    folder_in_root/folder_nested/renamed_file.txt -> folder_in_root/truly_renamed_file.txt
     ```
 
     </details>
@@ -128,28 +128,28 @@ For accessing private repositories (not need for the demo):
     --- Potential Conflicts ---
 
     Conflict: file_in_root.txt
-      origin/branchA: Modified   file_in_root.txt
       branchB:        Modified   file_in_root.txt
+      origin/branchA: Modified   file_in_root.txt
 
     Conflict: folder_in_root/empty_file.txt
-      origin/branchA: Modified   folder_in_root/empty_file.txt
       branchB:        Modified   folder_in_root/empty_file.txt
+      origin/branchA: Modified   folder_in_root/empty_file.txt
 
     Conflict: folder_in_root/folder_nested/created_file.txt
-      origin/branchA: Added      folder_in_root/folder_nested/created_file.txt
       branchB:        Added      folder_in_root/folder_nested/created_file.txt
+      origin/branchA: Added      folder_in_root/folder_nested/created_file.txt
 
     Conflict: folder_in_root/folder_nested/deleted_file.txt
-      origin/branchA: Removed    folder_in_root/folder_nested/deleted_file.txt
       branchB:        Removed    folder_in_root/folder_nested/deleted_file.txt
+      origin/branchA: Removed    folder_in_root/folder_nested/deleted_file.txt
 
     Conflict: folder_in_root/folder_nested/file_in_folders.txt
-      origin/branchA: Modified   folder_in_root/folder_nested/file_in_folders.txt
       branchB:        Modified   folder_in_root/folder_nested/file_in_folders.txt
+      origin/branchA: Modified   folder_in_root/folder_nested/file_in_folders.txt
 
     Conflict: folder_in_root/truly_renamed_file.txt
-      origin/branchA: Added      folder_in_root/truly_renamed_file.txt
       branchB:        Renamed    folder_in_root/folder_nested/renamed_file.txt -> folder_in_root/truly_renamed_file.txt
+      origin/branchA: Added      folder_in_root/truly_renamed_file.txt
     ```
 
     </details>

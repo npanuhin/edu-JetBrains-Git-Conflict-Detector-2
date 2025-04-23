@@ -59,33 +59,29 @@ public class Main {
                 remoteChanges = GitHubAPI.compareCommits(owner, repo, mergeBase, remoteHead, accessToken);
             }
 
-            System.out.println("\n--- Potential Conflicts ---\n");
-
+            Map<String, FileChange> remoteMap = new HashMap<>();
+            for (FileChange fc : remoteChanges) {
+                remoteMap.put(fc.path(), fc);
+            }
+            Collections.sort(localChanges);
             int maxBranchNameLength = Math.max(remoteBranch.length(), localBranch.length()) + 1;
 
-            Map<String, FileChange> localMap = new HashMap<>();
-            for (FileChange fc : localChanges) {
-                localMap.put(fc.path(), fc);
-            }
+            System.out.println("\n--- Potential Conflicts ---\n");
 
-            Collections.sort(remoteChanges);
-
-            for (FileChange remoteChange : remoteChanges) {
-                String path = remoteChange.path();
-                if (localMap.containsKey(path)) {
-                    FileChange localChange = localMap.get(path);
-
+            for (FileChange localChange : localChanges) {
+                String path = localChange.path();
+                FileChange remoteChange = remoteMap.get(path);
+                if (remoteChange != null) {
                     System.out.printf(
                             "Conflict: %s\n" +
                                     "  %-" + maxBranchNameLength + "s %s\n" +
                                     "  %-" + maxBranchNameLength + "s %s\n\n",
                             path,
-                            remoteBranch + ":", remoteChange,
-                            localBranch + ":", localChange
+                            localBranch + ":", localChange,
+                            remoteBranch + ":", remoteChange
                     );
                 }
             }
-
         } catch (ParseException e) {
             System.err.println("Error parsing command line arguments: " + e.getMessage());
         } catch (Exception e) {
