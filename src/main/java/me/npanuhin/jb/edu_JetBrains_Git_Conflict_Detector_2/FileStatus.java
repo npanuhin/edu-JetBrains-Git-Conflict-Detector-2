@@ -1,6 +1,6 @@
 package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
-public enum FileStatus {
+enum FileStatus {
     ADDED,
     REMOVED,
     MODIFIED,
@@ -9,7 +9,7 @@ public enum FileStatus {
     CHANGED,
     UNCHANGED;
 
-    public static FileStatus fromGit(String status) {
+    static FileStatus fromGit(String status) {
         char code = status.charAt(0);
         return switch (code) {
             case 'A' -> ADDED;
@@ -23,7 +23,7 @@ public enum FileStatus {
         };
     }
 
-    public static FileStatus fromGitHub(String status) {
+    static FileStatus fromGitHub(String status) {
         return FileStatus.valueOf(status.toUpperCase());
     }
 

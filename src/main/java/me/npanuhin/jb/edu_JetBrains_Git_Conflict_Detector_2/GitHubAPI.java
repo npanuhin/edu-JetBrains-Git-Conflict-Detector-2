@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GitHubAPI {
+class GitHubAPI {
 
     static JsonNode fetchURL(String urlString, String access_token) throws IOException, URISyntaxException {
         URI uri = new URI(urlString);
@@ -38,7 +38,7 @@ public class GitHubAPI {
         return parts[parts.length - 1];
     }
 
-    public static String getLastCommitOnBranch(String owner, String repo, String branch, String access_token)
+    static String getLastCommitOnBranch(String owner, String repo, String branch, String access_token)
             throws RuntimeException, URISyntaxException {
 
         String url = String.format("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, getBranchName(branch));
@@ -89,7 +89,7 @@ public class GitHubAPI {
         return files;
     }
 
-    public static List<FileChange> compareTrees(
+    static List<FileChange> compareTrees(
             String owner,
             String repo,
             String mergeBaseSha,
@@ -142,7 +142,7 @@ public class GitHubAPI {
         }
     }
 
-    public static List<FileChange> compareCommits(
+    static List<FileChange> compareCommits(
             String owner,
             String repo,
             String base,

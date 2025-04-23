@@ -6,9 +6,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GitUtils {
+class GitUtils {
 
-    public static String getMergeBase(String repoPath, String branchA, String branchB) {
+    static String getMergeBase(String repoPath, String branchA, String branchB) {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.add("-C");
@@ -20,7 +20,7 @@ public class GitUtils {
         return runGitCommand(command);
     }
 
-    public static List<FileChange> getModifiedFiles(String repoPath, String oldCommit, String newCommit) {
+    static List<FileChange> getModifiedFiles(String repoPath, String oldCommit, String newCommit) {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.add("-C");

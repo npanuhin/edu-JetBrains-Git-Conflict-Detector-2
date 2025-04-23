@@ -2,8 +2,8 @@ package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
 import org.jetbrains.annotations.NotNull;
 
-public record FileChange(FileStatus status, String path, String oldPath) implements Comparable<FileChange> {
-    public FileChange {
+record FileChange(FileStatus status, String path, String oldPath) implements Comparable<FileChange> {
+    FileChange {
         if (path == null) {
             throw new IllegalArgumentException("Main file path cannot be null");
         }
@@ -18,7 +18,8 @@ public record FileChange(FileStatus status, String path, String oldPath) impleme
     }
 
     @Override
-    public @NotNull String toString() {
+    @NotNull
+    public String toString() {
         int maxStatusLength = 0;
         for (FileStatus fileStatus : FileStatus.values()) {
             maxStatusLength = Math.max(maxStatusLength, fileStatus.toString().length());
