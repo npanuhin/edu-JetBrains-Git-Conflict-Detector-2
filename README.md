@@ -163,7 +163,7 @@ Tests are automatically run via GitHub Actions on each push: <a href="https://gi
 To run tests manually you can execute the Gradle's `test` task:
 
 ```bash
-./gradlew test
+gradlew test
 # or
 sh scripts/test.sh
 ```

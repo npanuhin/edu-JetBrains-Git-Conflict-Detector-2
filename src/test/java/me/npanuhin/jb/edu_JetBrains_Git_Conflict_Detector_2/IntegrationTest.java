@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
-import java.net.URISyntaxException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,76 +14,89 @@ import static org.mockito.Mockito.*;
 
 public class IntegrationTest {
 
+    private static String generateCompareFilesJson(int from, int to) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = from; i < to; i++) {
+            if (i > from) sb.append(",");
+            sb.append(String.format("""
+                    { "filename": "file%d.txt", "status": "modified" }
+                    """, i));
+        }
+        return sb.toString();
+    }
+
+    private static String generateCommitsArrayJson(int from, int to) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = from; i < to; i++) {
+            if (i > from) sb.append(",");
+            sb.append(String.format("""
+                    { "sha": "sha%d" }
+                    """, i));
+        }
+        return sb.toString();
+    }
+
     @Test
     void testManyFiles() throws IOException, URISyntaxException {
-        final int FILES_IN_COMMIT = 100;
-        final int NUM_COMMITS = 10;
+        final int NUM_PAGES = 3;
+        final int COMMITS_PER_PAGE = 300;
+        final int FILES_PER_COMMIT = 1;
 
         try (var gitHubMock = mockStatic(GitHubAPI.class, CALLS_REAL_METHODS)) {
             ObjectMapper mapper = new ObjectMapper();
 
-            StringBuilder compareFiles = new StringBuilder();
-            StringBuilder commitsArray = new StringBuilder();
-            List<String> filenames = new ArrayList<>();
+            // Mock the first page
+            gitHubMock.when(() ->
+                    GitHubAPI.fetchURL(eq("https://api.github.com/repos/owner/repo/compare/base...head?per_page=100"), any())
+            ).thenReturn(mapper.readTree(String.format("""
+                            {
+                              "files": [%s],
+                              "commits": [%s]
+                            }
+                            """,
+                    generateCompareFilesJson(0, FILES_PER_COMMIT * COMMITS_PER_PAGE * NUM_PAGES),
+                    generateCommitsArrayJson(0, COMMITS_PER_PAGE)
+            )));
 
-            for (int i = 0; i < NUM_COMMITS * FILES_IN_COMMIT; i++) {
-                if (i > 0) compareFiles.append(",");
-                compareFiles.append(String.format("""
-                            { "filename": "file%d.txt", "status": "modified" }
-                        """, i));
-                filenames.add(String.format("file%d.txt", i));
+            // Mock other pages
+            for (int page = 2; page <= NUM_PAGES + 1; page++) {
+                int from = (page - 1) * COMMITS_PER_PAGE;
+                int to = Math.min(page * COMMITS_PER_PAGE, NUM_PAGES * COMMITS_PER_PAGE);
+                String url = String.format("https://api.github.com/repos/owner/repo/compare/base...head?per_page=100&page=%d", page);
 
-                if (i < NUM_COMMITS) {
-                    if (i > 0) commitsArray.append(",");
-                    commitsArray.append(String.format("""
-                            { "sha": "sha%d" }
-                            """, i));
+                JsonNode pageNode;
+                if (from < to) {
+                    pageNode = mapper.readTree(String.format("""
+                            {
+                              "commits": [%s]
+                            }
+                            """, generateCommitsArrayJson(from, to)));
+                } else {
+                    pageNode = mapper.readTree("{}");
                 }
+
+                gitHubMock.when(() -> GitHubAPI.fetchURL(eq(url), any())).thenReturn(pageNode);
             }
 
-            JsonNode compareResponse = mapper.readTree(String.format("""
-                    {
-                      "files": [%s],
-                      "commits": [%s]
-                    }
-                    """, compareFiles, commitsArray));
-
-            gitHubMock.when(() ->
-                    GitHubAPI.fetchURL(eq("https://api.github.com/repos/owner/repo/compare/base...head"), any())
-            ).thenReturn(compareResponse);
-
-            for (int i = 0; i < NUM_COMMITS; i++) {
+            // Mock SHAs
+            for (int i = 0; i < NUM_PAGES * COMMITS_PER_PAGE; i++) {
                 final int commitNum = i;
-
-                StringBuilder commitFiles = new StringBuilder();
-                for (int j = commitNum * FILES_IN_COMMIT; j < (commitNum + 1) * FILES_IN_COMMIT; j++) {
-                    if (j > commitNum * FILES_IN_COMMIT) commitFiles.append(",");
-                    commitFiles.append(String.format("""
-                                { "filename": "file%d.txt", "status": "modified" }
-                            """, j));
-                }
-
-                gitHubMock.when(
-                        () -> GitHubAPI.fetchURL(
-                                eq(String.format("https://api.github.com/repos/owner/repo/commits/sha%d", commitNum)),
-                                any()
-                        )
+                gitHubMock.when(() ->
+                        GitHubAPI.fetchURL(eq(String.format("https://api.github.com/repos/owner/repo/commits/sha%d", commitNum)), any())
                 ).thenReturn(mapper.readTree(String.format("""
                         {
                           "files": [%s]
                         }
-                        """, commitFiles)));
+                        """, generateCompareFilesJson(commitNum, commitNum + 1))));
             }
 
+            // Expected result
             List<FileChange> expected = new ArrayList<>();
-            for (String filename : filenames) {
-                expected.add(new FileChange(FileStatus.MODIFIED, filename, null));
+            for (int i = 0; i < NUM_PAGES * COMMITS_PER_PAGE; i++) {
+                expected.add(new FileChange(FileStatus.MODIFIED, "file" + i + ".txt", null));
             }
 
-            List<FileChange> result = GitHubAPI.compareCommits(
-                    "owner", "repo", "base", "head", null
-            );
-
+            List<FileChange> result = GitHubAPI.compareCommits("owner", "repo", "base", "head", null);
             assertEquals(expected, result);
         }
     }
