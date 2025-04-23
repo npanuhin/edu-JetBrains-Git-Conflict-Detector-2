@@ -2,28 +2,27 @@ package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
 import org.apache.commons.cli.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 4) {
-            System.out.println("Usage: java -jar git-conflict-detector.jar <localBranch> <remoteBranch> <owner> <repo> [accessToken]");
-            return;
-        }
-
         Options options = new Options();
 
         options.addOption("C", "repo-path", true, "Repository path");
-        options.addOption("t", "access-token", true, "GitHub access token");
+        options.addOption("t", "token", true, "GitHub access token");
+        options.addOption("T", "use-trees", false, "Compare using GitHub trees instead of commits");
 
         try {
             CommandLine cmd = new DefaultParser().parse(options, args);
 
             String[] remainingArgs = cmd.getArgs();
             if (remainingArgs.length < 4) {
-                System.out.println("Usage: java -jar git-conflict-detector.jar <localBranch> <remoteBranch> <owner> <repo> [--repo-path <path>] [--token <token>]");
+                System.out.println("Usage: java -jar git-conflict-detector.jar " +
+                        "<localBranch> <remoteBranch> <owner> <repo> " +
+                        "[--repo-path <path>] [--token <token>] [--use-trees]");
                 return;
             }
 
@@ -34,6 +33,7 @@ public class Main {
 
             String repoPath = cmd.getOptionValue("C", ".");
             String accessToken = cmd.getOptionValue("t");
+            boolean compareUsingTrees = cmd.hasOption("T");
 
             if (localBranch.contains("/")) {
                 System.out.println("Local branch names should not contain \"/\" character");
@@ -50,7 +50,14 @@ public class Main {
 
             String remoteHead = GitHubAPI.getLastCommitOnBranch(owner, repo, remoteBranch, accessToken);
 
-            List<FileChange> remoteChanges = GitHubAPI.compareCommits(owner, repo, mergeBase, remoteHead, accessToken);
+            List<FileChange> remoteChanges;
+            if (compareUsingTrees) {
+                System.out.println("Comparing using trees...");
+                remoteChanges = GitHubAPI.compareTrees(owner, repo, mergeBase, remoteHead, accessToken);
+            } else {
+                System.out.println("Comparing using commits...");
+                remoteChanges = GitHubAPI.compareCommits(owner, repo, mergeBase, remoteHead, accessToken);
+            }
 
             System.out.println("\n--- Potential Conflicts ---\n");
 
@@ -60,6 +67,8 @@ public class Main {
             for (FileChange fc : localChanges) {
                 localMap.put(fc.path(), fc);
             }
+
+            Collections.sort(remoteChanges);
 
             for (FileChange remoteChange : remoteChanges) {
                 String path = remoteChange.path();

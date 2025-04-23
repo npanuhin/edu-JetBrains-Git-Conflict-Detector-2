@@ -55,29 +55,41 @@ For accessing private repositories (not need for the demo):
 
     </details>
 
-3. Run the script with the demo arguments: `branchB [origin/]branchA repo_owner repo_name [--access_token] [--repo_path]`
+3. Build the project using the provided `build` script (`scripts\build` or `sh scripts/build.sh`)
+
+    ```bash
+    sh scripts/build.sh  # Linux/MacOS
+    # or
+    scripts\build        # Windows
+    ```
+
+4. Run the script with the demo arguments:
+
+    `branchB [origin/]branchA npanuhin edu-JetBrains-Git-Conflict-Detector-2 [--repo-path <path>] [--token <token>] [--use-trees]`
 
     `get_diff.cmd` and `./get_diff.sh` are provided for your convenience. For example:
 
     ```bash
-    sh scripts/get_diff.sh branchB origin/branchA npanuhin edu-JetBrains-Git-Conflict-Detector
+    sh scripts/get_diff.sh branchB origin/branchA npanuhin edu-JetBrains-Git-Conflict-Detector-2
     # or
-    scripts\get_diff branchB origin/branchA npanuhin edu-JetBrains-Git-Conflict-Detector
+    scripts\get_diff branchB origin/branchA npanuhin edu-JetBrains-Git-Conflict-Detector-2 --use-trees
 
     # or (if this repository was private and located in a different directory)
-    sh scripts/get_diff.sh branchB branchA npanuhin edu-JetBrains-Git-Conflict-Detector --access_token {github_token} --repo_path ../some_path/
+    sh scripts/get_diff.sh branchB branchA npanuhin edu-JetBrains-Git-Conflict-Detector-2 --repo_path ../some_path/ --token {github_token}
     ```
 
     Parameters:
-    - `branchB` — local branch, which will be checked for conflicts
-    - `[origin/]branchA` — remote branch, which we compare against. `origin/` will be added automatically, if omitted[^1]
-    - `repo_owner`, `repo_name` — GitHub repository owner and name
-    - `--access_token {github_token}` — GitHub API token. Not required for public repositories
-    - `--repo_path {local_path}` — path to the local repository. By default, the current directory is used
+    - `localBranch` — local branch, which will be checked for conflicts
+    - `remoteBranch` — remote branch, which we compare against. `origin/` will be added automatically, if omitted[^1]
+    - `owner` — GitHub repository owner
+    - `repo` — GitHub repository name
+    - `--repo-path <path>`, `-C <path>` — path to the local repository. By default, the current directory is used
+    - `--token <token>`, `-t <token>` — GitHub API token. Not required for public repositories
+    - `--use-trees`, `-T` — use file tree comparison instead of commit comparison
 
     <br>
     <details>
-    <summary>Click here to see the expected output</summary>
+    <summary>Click here to see the expected output (commit comparison)</summary>
 
     ```py
     --- Potential Conflicts ---
@@ -109,7 +121,40 @@ For accessing private repositories (not need for the demo):
 
     </details>
 
-4. If you want to reset the Git structure to the initial state, you can either run `scripts\rollback` or `sh scripts/rollback.sh`, or clone the repository again
+    <details>
+    <summary>Click here to see the expected output (tree comparison)</summary>
+
+    ```py
+    --- Potential Conflicts ---
+
+    Conflict: file_in_root.txt
+      origin/branchA: Modified   file_in_root.txt
+      branchB:        Modified   file_in_root.txt
+
+    Conflict: folder_in_root/empty_file.txt
+      origin/branchA: Modified   folder_in_root/empty_file.txt
+      branchB:        Modified   folder_in_root/empty_file.txt
+
+    Conflict: folder_in_root/folder_nested/created_file.txt
+      origin/branchA: Added      folder_in_root/folder_nested/created_file.txt
+      branchB:        Added      folder_in_root/folder_nested/created_file.txt
+
+    Conflict: folder_in_root/folder_nested/deleted_file.txt
+      origin/branchA: Removed    folder_in_root/folder_nested/deleted_file.txt
+      branchB:        Removed    folder_in_root/folder_nested/deleted_file.txt
+
+    Conflict: folder_in_root/folder_nested/file_in_folders.txt
+      origin/branchA: Modified   folder_in_root/folder_nested/file_in_folders.txt
+      branchB:        Modified   folder_in_root/folder_nested/file_in_folders.txt
+
+    Conflict: folder_in_root/truly_renamed_file.txt
+      origin/branchA: Added      folder_in_root/truly_renamed_file.txt
+      branchB:        Renamed    folder_in_root/folder_nested/renamed_file.txt -> folder_in_root/truly_renamed_file.txt
+    ```
+
+    </details>
+
+5. If you want to reset the Git structure to the initial state, you can either run `scripts\rollback` or `sh scripts/rollback.sh`, or clone the repository again
 
 ## Testing
 

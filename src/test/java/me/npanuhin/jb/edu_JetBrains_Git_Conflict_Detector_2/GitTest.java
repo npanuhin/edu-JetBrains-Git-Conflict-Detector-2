@@ -18,9 +18,7 @@ public class GitTest {
 
     @Test
     void testRunCmdFailure() {
-        assertThrows(RuntimeException.class, () -> {
-            GitUtils.runGitCommand(List.of("git", "badcommand"));
-        });
+        assertThrows(RuntimeException.class, () -> GitUtils.runGitCommand(List.of("git", "bad_command")));
     }
 
     @Test
@@ -32,9 +30,8 @@ public class GitTest {
 
     @Test
     void testMergeBaseFailure() {
-        assertThrows(RuntimeException.class, () -> {
-            GitUtils.getMergeBase(".", "HEAD", "badbranchname");
-        });
+        assertThrows(RuntimeException.class,
+                () -> GitUtils.getMergeBase(".", "HEAD", "bad_branch_name"));
     }
 
     @Test
@@ -52,7 +49,7 @@ public class GitTest {
     void testGetModifiedFilesParsing() {
         String diffOutput = String.join("\n",
                 "M\tfile.txt",
-                "A\tnewfile.txt",
+                "A\tnew_file.txt",
                 "R100\told.txt\tnew.txt"
         );
 

@@ -29,7 +29,9 @@ public class GitHubTest {
         try (var mockStatic = mockStatic(GitHubAPI.class, CALLS_REAL_METHODS)) {
             mockStatic.when(() -> GitHubAPI.fetchURL(any(), any())).thenReturn(mockNode);
 
-            List<FileChange> result = GitHubAPI.compareCommits("owner", "repo", "base", "head", null);
+            List<FileChange> result = GitHubAPI.compareCommits(
+                    "owner", "repo", "base", "head", null
+            );
 
             assertEquals(1, result.size());
             assertEquals("file.txt", result.getFirst().path());

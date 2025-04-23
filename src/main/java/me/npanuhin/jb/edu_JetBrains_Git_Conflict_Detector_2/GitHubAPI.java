@@ -10,12 +10,13 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GitHubAPI {
 
     static JsonNode fetchURL(String urlString, String access_token) throws IOException, URISyntaxException {
-
         URI uri = new URI(urlString);
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
         connection.setRequestMethod("GET");
@@ -49,6 +50,83 @@ public class GitHubAPI {
         }
     }
 
+    private static Map<String, String> fetchGitHubTree(String owner, String repo, String sha, String access_token)
+            throws IOException, URISyntaxException {
+
+        // Method 1: Automatic recursion
+        JsonNode tree = fetchURL(
+                String.format("https://api.github.com/repos/%s/%s/git/trees/%s", owner, repo, sha),
+                access_token
+        );
+
+        if (tree.get("truncated").asBoolean()) {
+            // Method 2: Manual recursion
+            tree = fetchURL(
+                    String.format("https://api.github.com/repos/%s/%s/git/trees/%s?recursive=1", owner, repo, sha),
+                    access_token
+            );
+
+            if (tree.get("truncated").asBoolean()) {
+                throw new RuntimeException("GitHub API returned a truncated tree. There are too many files in one of the repository's folders");
+            }
+        }
+
+        Map<String, String> files = new HashMap<>();
+
+        for (JsonNode item : tree.get("tree")) {
+            if (item.get("type").asText().equals("blob")) {
+                files.put(item.get("path").asText(), item.get("sha").asText());
+            } else if (item.get("type").asText().equals("tree")) {
+                Map<String, String> subTreeFiles = fetchGitHubTree(owner, repo, item.get("sha").asText(), access_token);
+                for (Map.Entry<String, String> entry : subTreeFiles.entrySet()) {
+                    files.put(item.get("path").asText() + "/" + entry.getKey(), entry.getValue());
+                }
+            } else {
+                throw new RuntimeException("Unsupported GitHub tree item type: " + item.get("type").asText());
+            }
+        }
+
+        return files;
+    }
+
+    public static List<FileChange> compareTrees(
+            String owner,
+            String repo,
+            String mergeBaseSha,
+            String headSha,
+            String access_token
+    ) throws IOException, URISyntaxException {
+
+        Map<String, String> mergeBaseFiles = fetchGitHubTree(owner, repo, mergeBaseSha, access_token);
+        Map<String, String> headFiles = fetchGitHubTree(owner, repo, headSha, access_token);
+
+        List<FileChange> result = new ArrayList<>();
+
+        for (String path : mergeBaseFiles.keySet()) {
+            if (!headFiles.containsKey(path)) {
+                result.add(new FileChange(FileStatus.REMOVED, path, null));
+            }
+        }
+
+        for (String path : headFiles.keySet()) {
+            if (!mergeBaseFiles.containsKey(path)) {
+                result.add(new FileChange(FileStatus.ADDED, path, null));
+            }
+        }
+
+        for (Map.Entry<String, String> entry : mergeBaseFiles.entrySet()) {
+            String path = entry.getKey();
+            String mergeBaseFileSha = entry.getValue();
+            String headFileSha = headFiles.get(path);
+
+            if (headFileSha != null && !headFileSha.equals(mergeBaseFileSha)) {
+                result.add(new FileChange(FileStatus.MODIFIED, path, null));
+            }
+        }
+
+        return result;
+    }
+
     private static void parseCommits(JsonNode fileNode, List<FileChange> changes) {
         String filename = fileNode.get("filename").asText();
         String rawStatus = fileNode.get("status").asText();
@@ -62,8 +140,12 @@ public class GitHubAPI {
         ));
     }
 
-    private static List<FileChange> analyzeAllCommits(JsonNode commitsArray, String owner, String repo, String access_token)
-            throws IOException, URISyntaxException {
+    private static List<FileChange> analyzeAllCommits(
+            JsonNode commitsArray,
+            String owner,
+            String repo,
+            String access_token
+    ) throws IOException, URISyntaxException {
 
         List<FileChange> changes = new ArrayList<>();
 
@@ -79,8 +161,13 @@ public class GitHubAPI {
         return changes;
     }
 
-    public static List<FileChange> compareCommits(String owner, String repo, String base, String head, String access_token)
-            throws RuntimeException, URISyntaxException {
+    public static List<FileChange> compareCommits(
+            String owner,
+            String repo,
+            String base,
+            String head,
+            String access_token
+    ) throws RuntimeException, URISyntaxException {
 
         String url = String.format(
                 "https://api.github.com/repos/%s/%s/compare/%s...%s",

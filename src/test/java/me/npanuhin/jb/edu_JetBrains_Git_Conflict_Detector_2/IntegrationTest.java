@@ -63,8 +63,11 @@ public class IntegrationTest {
                             """, j));
                 }
 
-                gitHubMock.when(() ->
-                        GitHubAPI.fetchURL(eq(String.format("https://api.github.com/repos/owner/repo/commits/sha%d", commitNum)), any())
+                gitHubMock.when(
+                        () -> GitHubAPI.fetchURL(
+                                eq(String.format("https://api.github.com/repos/owner/repo/commits/sha%d", commitNum)),
+                                any()
+                        )
                 ).thenReturn(mapper.readTree(String.format("""
                         {
                           "files": [%s]
@@ -77,7 +80,9 @@ public class IntegrationTest {
                 expected.add(new FileChange(FileStatus.MODIFIED, filename, null));
             }
 
-            List<FileChange> result = GitHubAPI.compareCommits("owner", "repo", "base", "head", null);
+            List<FileChange> result = GitHubAPI.compareCommits(
+                    "owner", "repo", "base", "head", null
+            );
 
             assertEquals(expected, result);
         }

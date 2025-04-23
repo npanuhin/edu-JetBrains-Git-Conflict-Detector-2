@@ -2,7 +2,7 @@ package me.npanuhin.jb.edu_JetBrains_Git_Conflict_Detector_2;
 
 import org.jetbrains.annotations.NotNull;
 
-public record FileChange(FileStatus status, String path, String oldPath) {
+public record FileChange(FileStatus status, String path, String oldPath) implements Comparable<FileChange> {
     public FileChange {
         if (path == null) {
             throw new IllegalArgumentException("Main file path cannot be null");
@@ -27,5 +27,12 @@ public record FileChange(FileStatus status, String path, String oldPath) {
         String statusStr = String.format("%-" + maxStatusLength + "s", status.toString());
         String prefix = (oldPath != null) ? oldPath + " -> " : "";
         return String.format("%s  %s%s", statusStr, prefix, path);
+    }
+
+    @Override
+    public int compareTo(@NotNull FileChange other) {
+        String thisKey = (this.oldPath != null) ? this.oldPath : this.path;
+        String otherKey = (other.oldPath != null) ? other.oldPath : other.path;
+        return thisKey.compareTo(otherKey);
     }
 }
